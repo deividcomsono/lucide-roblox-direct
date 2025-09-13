@@ -9,11 +9,16 @@ if writefile and isfolder and makefolder and getcustomasset then
 		makefolder("lucide-icons")
 	end
 
-	writefile("lucide-icons/version.txt", LATEST_VERSION)
+	if not isfile("lucide-icons/version.txt") then
+		writefile("lucide-icons/version.txt", LATEST_VERSION)
+	end
 
 	local ShouldUpdate = readfile("lucide-icons/version.txt") ~= LATEST_VERSION
 
-
+	if ShouldUpdate then
+		writefile("lucide-icons/version.txt", LATEST_VERSION)
+	end
+	
 	for spritesheet = 1, 2 do
 		if isfile(`lucide-icons/{spritesheet}.png`) and not ShouldUpdate then
 			continue
