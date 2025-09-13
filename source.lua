@@ -1,5 +1,7 @@
 local Lucide = {}
 
+local LATEST_VERSION = "2025-09-04T02:16:58.607034191+00:00"
+
 local IS_GETCUSTOMASSET_BROKEN = false
 
 if writefile and isfolder and makefolder and getcustomasset then
@@ -7,11 +9,10 @@ if writefile and isfolder and makefolder and getcustomasset then
 		makefolder("lucide-icons")
 	end
 
-	if not isfile("lucide-icons/version.txt") then
-		writefile("lucide-icons/version.txt", "2025-09-04T02:16:58.607034191+00:00")
-	end
+	writefile("lucide-icons/version.txt", LATEST_VERSION)
 
-	local ShouldUpdate = readfile("lucide-icons/version.txt") ~= "2025-09-04T02:16:58.607034191+00:00"
+	local ShouldUpdate = readfile("lucide-icons/version.txt") ~= LATEST_VERSION
+
 
 	for spritesheet = 1, 2 do
 		if isfile(`lucide-icons/{spritesheet}.png`) and not ShouldUpdate then
