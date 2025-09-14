@@ -13,6 +13,10 @@ if writefile and isfolder and makefolder and getcustomasset then
 
 	local ShouldUpdate = readfile("lucide-icons/version.txt") ~= VERSION
 
+	if ShouldUpdate then
+		writefile("lucide-icons/version.txt", VERSION)
+	end
+
 	for spritesheet = 1, DATA_SPRITESHEETS do
 		if isfile(`lucide-icons/{spritesheet}.png`) and not ShouldUpdate then
 			continue
