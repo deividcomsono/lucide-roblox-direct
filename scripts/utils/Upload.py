@@ -57,39 +57,38 @@ def upload_asset(file_path, name, description, auth_token, creator_id, creator_t
             'request': (None, json.dumps(request_data), 'application/json'),
             'fileContent': (os.path.basename(file_path), file, 'application/octet-stream')
         }
-        file.close()
         
-    try:
-        response = requests.post("https://apis.roblox.com/assets/v1/assets", headers=headers, files=files)
-        
-        if response.status_code != 200:
-            print(f"❌ Upload failed with status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            return None
-   
-        result = response.json()
-        operation_id = result.get('operationId')
-
-        
-        while True:
-            time.sleep(0.25)
-            status_url = f"https://apis.roblox.com/assets/v1/operations/{operation_id}"
-            status_response = requests.get(status_url, headers=headers)
+        try:
+            response = requests.post("https://apis.roblox.com/assets/v1/assets", headers=headers, files=files)
             
-            if status_response.status_code == 200:
-                status_result = status_response.json()
-                if status_result.get('done') == True:
-                    assetId = status_result["response"]["assetId"]
-                    break
-            else:
-                print(f"❌ Failed to check operation status: {status_response.status_code}")
+            if response.status_code != 200:
+                print(f"❌ Upload failed with status code: {response.status_code}")
+                print(f"Response: {response.text}")
                 return None
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Network error: {e}")
-        return None
-    except Exception as e:
-        print(f"❌ Unexpected error: {e}")
-        return None
+    
+            result = response.json()
+            operation_id = result.get('operationId')
+
+            
+            while True:
+                time.sleep(0.25)
+                status_url = f"https://apis.roblox.com/assets/v1/operations/{operation_id}"
+                status_response = requests.get(status_url, headers=headers)
+                
+                if status_response.status_code == 200:
+                    status_result = status_response.json()
+                    if status_result.get('done') == True:
+                        assetId = status_result["response"]["assetId"]
+                        break
+                else:
+                    print(f"❌ Failed to check operation status: {status_response.status_code}")
+                    return None
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Network error: {e}")
+            return None
+        except Exception as e:
+            print(f"❌ Unexpected error: {e}")
+            return None
 
     AssetDeliveryLocation = requests.get(f"https://apis.roblox.com/asset-delivery-api/v1/assetId/{assetId}", headers=headers)
     if AssetDeliveryLocation.status_code != 200:

@@ -29,7 +29,7 @@ ROBLOX_USER_ID=your_user_id_here
 ```
 
 Replace `your_api_key_here` with your actual Roblox API key and `your_user_id_here` with your Roblox user ID.
-(ROBLOX_API_KEY should have write permissions to the assets in roblox open cloud permissions)
+(ROBLOX_API_KEY should have read & write permissions to the assets in roblox open cloud permissions and manage permissions for the legacy-assets)
 
 and finally, run the following command to build the script:
 
