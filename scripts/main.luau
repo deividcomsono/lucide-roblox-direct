@@ -289,7 +289,7 @@ end
 
 local SerializedData = LuaEncode(IconData)
 
-local RealRobloxAssetID = {}
+local RealRobloxContentID = {}
 for id, _ in InsertedIds do
 	local assetId = UploadImageAssetToRoblox({
 		path = `spritesheets/{id}.png`,
@@ -297,15 +297,15 @@ for id, _ in InsertedIds do
 		description = `Spritesheet for all lucide icons. Built at {BUILD_VERSION}.`,
 	})
 
-	print("Successfully uploaded a Lucide Spritesheet with Asset ID:", assetId)
+	print("Successfully uploaded a Lucide Spritesheet with Content ID:", assetId)
 
-	RealRobloxAssetID[id] = assetId
+	RealRobloxContentID[id] = assetId
 end
 
 for id, _ in InsertedIds do
 	SerializedData = SerializedData:gsub(
 		`"rbxassetid://{id}"`,
-		`if getcustomasset and not IS_GETCUSTOMASSET_BROKEN then getcustomasset("lucide-icons/{id}.png") else "https://www.roblox.com/asset/?id={RealRobloxAssetID[id]}"`
+		`if getcustomasset and not IS_GETCUSTOMASSET_BROKEN then getcustomasset("lucide-icons/{id}.png") else "rbxassetid://{RealRobloxContentID[id]}"`
 	)
 end
 

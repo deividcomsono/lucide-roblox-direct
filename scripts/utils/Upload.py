@@ -7,8 +7,10 @@ import argparse
 import os
 import time
 import requests
+import json
+import xml.etree.ElementTree as ET
+import re
 
-    
 asset_type_map = {
     '.png': 'Decal',
     '.jpg': 'Decal',
@@ -33,15 +35,11 @@ def upload_asset(file_path, name, description, auth_token, creator_id, creator_t
     if not asset_type:
         raise ValueError(f"Unsupported file type: {file_ext}")
     
-    # Roblox Open Cloud API endpoint
-    url = "https://apis.roblox.com/assets/v1/assets"
-    
-    # Prepare headers
     headers = {
         "x-api-key": auth_token,
     }
     
-    # Prepare the request payload with creator information
+    # Uploading Asset
     creator_key = "userId" if creator_type.lower() == "user" else "groupId"
     request_data = {
         "assetType": asset_type,
@@ -54,49 +52,70 @@ def upload_asset(file_path, name, description, auth_token, creator_id, creator_t
         }
     }
     
-    # Prepare the multipart form data
     with open(file_path, 'rb') as file:
-        import json
         files = {
             'request': (None, json.dumps(request_data), 'application/json'),
             'fileContent': (os.path.basename(file_path), file, 'application/octet-stream')
         }
+        file.close()
         
-        try:
-            response = requests.post(url, headers=headers, files=files)
+    try:
+        response = requests.post("https://apis.roblox.com/assets/v1/assets", headers=headers, files=files)
+        
+        if response.status_code != 200:
+            print(f"❌ Upload failed with status code: {response.status_code}")
+            print(f"Response: {response.text}")
+            return None
+   
+        result = response.json()
+        operation_id = result.get('operationId')
+
+        
+        while True:
+            time.sleep(0.25)
+            status_url = f"https://apis.roblox.com/assets/v1/operations/{operation_id}"
+            status_response = requests.get(status_url, headers=headers)
             
-            if response.status_code == 200:
-                result = response.json()
-                operation_id = result.get('operationId')
-
-                while True:
-                    time.sleep(0.25)
-                    status_url = f"https://apis.roblox.com/assets/v1/operations/{operation_id}"
-                    status_response = requests.get(status_url, headers=headers)
-                    
-                    if status_response.status_code == 200:
-                        status_result = status_response.json()
-                        if status_result.get('done') == True:
-                            print(status_result["response"]["assetId"])
-                            break
-                    else:
-                        print(f"❌ Failed to check operation status: {status_response.status_code}")
-                        return None
-
-
-                return result
+            if status_response.status_code == 200:
+                status_result = status_response.json()
+                if status_result.get('done') == True:
+                    assetId = status_result["response"]["assetId"]
+                    break
             else:
-                print(f"❌ Upload failed with status code: {response.status_code}")
-                print(f"Response: {response.text}")
+                print(f"❌ Failed to check operation status: {status_response.status_code}")
                 return None
-                
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Network error: {e}")
-            return None
-        except Exception as e:
-            print(f"❌ Unexpected error: {e}")
-            return None
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Network error: {e}")
+        return None
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return None
 
+    AssetDeliveryLocation = requests.get(f"https://apis.roblox.com/asset-delivery-api/v1/assetId/{assetId}", headers=headers)
+    if AssetDeliveryLocation.status_code != 200:
+        print(f"❌ Failed to get asset delivery location: {AssetDeliveryLocation.status_code}")
+        return None
+    
+    XMLContentRequest = requests.get(AssetDeliveryLocation.json()["location"])
+    ContentData = ET.fromstring(XMLContentRequest.content)
+
+    url_element = ContentData.find(".//Content[@name='Texture']/url")
+
+    if url_element is not None and url_element.text:
+        # Extract the number using regex
+        match = re.search(r"id=(\d+)", url_element.text)
+        if match:
+            asset_id = match.group(1)
+            print(asset_id)
+            return True
+        else:
+            print("❌ No ID found in URL text")
+            return None
+    else:
+        print("❌  No <url> tag found")
+        return None
+
+    
 
 def main():
     """Main function to handle command line arguments and execute upload"""
