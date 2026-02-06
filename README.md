@@ -4,7 +4,7 @@ lucide-roblox-direct is a script that directly gives you a standalone file that 
 
 ## Usage
 
-Example module found [here](https://github.com/notpoiu/cobalt/blob/main/Src/Utils/Icons.luau)
+Example module found [here](https://github.com/notpoiu/cobalt/blob/main/Src/Utils/UI/Icons.luau)
 
 ## Building
 
